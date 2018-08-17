@@ -76,11 +76,8 @@
             }
              console.log(arr)
         $.ajax({
-            url:'http://192.168.0.220:80/community/faceInfo/register',
+            url:'index.html',
             type:'POST',
-            // data:{
-            //     files:arr
-            // },
             data:formdata,
             dataType: 'json',                   //以jsonp类型返回
             cache: false,                      // 不缓存
