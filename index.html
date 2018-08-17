@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>html5 调用本地摄像头</title>
+    <style>
+        #img img{
+            width: 160px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+<video id="video" autoplay="autoplay" style="width:640px;height:480px;border:1px solid red"></video>
+<button id='picture'>PICTURE</button>
+<canvas id="canvas" width="640" height="480"></canvas>
+<div id="img"></div>
+<button id="btn">上传</button>
+<script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type="text/javascript">
+    var video = document.getElementById("video");
+    var context = canvas.getContext("2d");
+    var errocb = function (code) {
+        console.log(code);
+        alert('未检测到摄像头！')
+    };
+    if (navigator.getUserMedia) { // 标准的API
+        navigator.getUserMedia({ "video": true }, function (stream) {
+            console.log(1,stream)
+            video.srcObject  = stream;
+            video.play();
+        }, errocb);
+    } else if (navigator.webkitGetUserMedia) { // WebKit 核心的API
+
+        console.log(navigator.webkitGetUserMedia);
+        navigator.webkitGetUserMedia({ "video": true }, function (stream) {
+            console.log(2,stream)
+            video.srcObject  = window.webkitURL.createObjectURL(stream);
+            video.play();
+        }, errocb);
+    }
+//    将拍好的照片显示在画布上
+    var imgArr=[];
+    document.getElementById("picture").addEventListener("click", function () {
+        context.drawImage(video, 0, 0, 640, 480);
+        var dataurl = canvas.toDataURL('image/png');
+        imgArr.push(dataurl)
+            console.log(imgArr)
+        var imgCount=$('#img')
+        var img=`<img src="${dataurl}">`
+        imgCount.append(img)
+          // formData.append("imageName",convertBase64UrlToBlob(base64Codes));
+    });
+    $('#btn').on('click',function(){
+        var imgUrl=[]
+        for(var i=0;i<$('#img img').length;i++){
+            imgUrl.push($('#img img').attr('src'))
+        }
+        console.log(imgArr)
+    //  Dataurl转化为File对象
+        function dataURLtoFile(dataurl, filename) {
+            var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, {type:mime});
+        }  
+        console.log(dataURLtoFile(imgArr[0],new Date().getTime()))
+        var formdata=new FormData()
+        var arr=[]
+            for(var j=0;j<imgArr.length;j++){
+                var file=dataURLtoFile(imgArr[j],new Date().getTime())
+                formdata.append('files',file)
+                // arr.push(dataURLtoFile(imgArr[j],new Date().getTime()))
+            }
+             console.log(arr)
+        $.ajax({
+            url:'http://192.168.0.220:80/community/faceInfo/register',
+            type:'POST',
+            // data:{
+            //     files:arr
+            // },
+            data:formdata,
+            dataType: 'json',                   //以jsonp类型返回
+            cache: false,                      // 不缓存
+            processData: false,                // jQuery不要去处理发送的数据
+            contentType: false,
+            success:function(res){
+                console.log(res)
+            },
+            error:function(){
+                alert('错误！')
+            }
+        })
+    })
+
+
+
+</script>
+</body>
+</html>
